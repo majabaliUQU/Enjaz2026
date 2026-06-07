@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
@@ -11,28 +11,26 @@
 <body>
 <div class="container py-4">
 <div class="hero">
-<h1>مشاريع معرض إنجاز</h1>
+<h1 class="mb-4">مشاريع معرض إنجاز</h1>
 
-<input id="searchBox" class="form-control mb-3" placeholder="بحث">
+<input id="search" class="form-control mb-3" placeholder="ابحث في المشاريع">
 
 <div class="row g-2">
-<div class="col-md-3"><select id="reviewerFilter" class="form-select"></select></div>
-<div class="col-md-3"><select id="sectionFilter" class="form-select"></select></div>
-<div class="col-md-3"><select id="trackFilter" class="form-select"></select></div>
-<div class="col-md-3"><select id="supervisorFilter" class="form-select"></select></div>
+<div class="col-md-3"><select id="reviewer" class="form-select"></select></div>
+<div class="col-md-3"><select id="section" class="form-select"></select></div>
+<div class="col-md-3"><select id="track" class="form-select"></select></div>
+<div class="col-md-3"><select id="supervisor" class="form-select"></select></div>
 </div>
 </div>
 
-<div class="row g-3 mb-4">
-<div class="col-md-3"><div class="stat-card">عدد المشاريع<br><h3 id="projectsCount"></h3></div></div>
-<div class="col-md-3"><div class="stat-card">عدد التخصصات<br><h3 id="tracksCount"></h3></div></div>
-<div class="col-md-3"><div class="stat-card">عدد المشرفين<br><h3 id="supervisorsCount"></h3></div></div>
-<div class="col-md-3"><div class="stat-card">عدد المحكمين<br><h3 id="reviewersCount"></h3></div></div>
+<div class="row g-3 my-4">
+<div class="col-md-3"><div class="stat"><div>عدد المشاريع</div><h3 id="projectsCount"></h3></div></div>
+<div class="col-md-3"><div class="stat"><div>عدد التخصصات</div><h3 id="tracksCount"></h3></div></div>
+<div class="col-md-3"><div class="stat"><div>عدد المشرفين</div><h3 id="supervisorsCount"></h3></div></div>
+<div class="col-md-3"><div class="stat"><div>عدد المحكمين</div><h3 id="reviewersCount"></h3></div></div>
 </div>
 
 <div id="cards" class="row g-4"></div>
 </div>
-
 <script src="assets/app.js"></script>
-</body>
-</html>
+</body></html>

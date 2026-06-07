@@ -1,83 +1,108 @@
 
-let allData=[];
+let DATA=[];
 
 fetch('projects.json')
 .then(r=>r.json())
-.then(data=>{
- allData=data;
- populateFilters(data);
- render();
+.then(d=>{
+ DATA=d;
+ init();
 });
 
-function unique(data,key){return [...new Set(data.map(x=>x[key]).filter(Boolean))].sort();}
+const ids=['reviewer','section','track','supervisor'];
 
-function fillSelect(id,items,label){
- const s=document.getElementById(id);
- s.innerHTML=`<option value="">${label}</option>`;
- items.forEach(v=>s.add(new Option(v,v)));
+function init(){
+ populateAllFilters();
+ ids.forEach(id=>document.getElementById(id).addEventListener('change',onFilterChange));
+ search.addEventListener('input',render);
+ render();
 }
 
-function currentFiltered(){
- const reviewer=reviewerFilter.value;
- const section=sectionFilter.value;
- const track=trackFilter.value;
- const supervisor=supervisorFilter.value;
- const search=searchBox.value.toLowerCase();
+function populateSelect(el, values, label, keep=''){
+ el.innerHTML='';
+ el.add(new Option(label,''));
+ values.forEach(v=>el.add(new Option(v,v)));
+ if(values.includes(keep)) el.value=keep;
+}
 
- return allData.filter(r=>
- (!reviewer || r.reviewer===reviewer) &&
- (!section || r.gender_section===section) &&
- (!track || r.track===track) &&
- (!supervisor || r.supervisor===supervisor) &&
- JSON.stringify(r).toLowerCase().includes(search)
+function applyFilters(ignore=null){
+ const reviewerVal = ignore==='reviewer' ? '' : reviewer.value;
+ const sectionVal = ignore==='section' ? '' : section.value;
+ const trackVal = ignore==='track' ? '' : track.value;
+ const supervisorVal = ignore==='supervisor' ? '' : supervisor.value;
+
+ const q = search.value.toLowerCase();
+
+ return DATA.filter(r=>
+ (!reviewerVal || r.reviewer===reviewerVal) &&
+ (!sectionVal || r.gender_section===sectionVal) &&
+ (!trackVal || r.track===trackVal) &&
+ (!supervisorVal || r.supervisor===supervisorVal) &&
+ (!q || JSON.stringify(r).toLowerCase().includes(q))
  );
 }
 
-function populateFilters(data){
- fillSelect('reviewerFilter',unique(data,'reviewer'),'كل المحكمين');
- fillSelect('trackFilter',unique(data,'track'),'كل التخصصات');
- fillSelect('supervisorFilter',unique(data,'supervisor'),'كل المشرفين');
+function populateAllFilters(){
+ const rv=reviewer.value||'';
+ const sv=section.value||'';
+ const tv=track.value||'';
+ const pv=supervisor.value||'';
 
- sectionFilter.innerHTML='';
- ['','شطر الطلاب','شطر الطالبات'].forEach(v=>{
-   sectionFilter.add(new Option(v||'كلا الشطرين',v));
- });
+ populateSelect(reviewer,
+ [...new Set(applyFilters('reviewer').map(x=>x.reviewer).filter(Boolean))].sort(),
+ 'كل المحكمين', rv);
 
- document.querySelectorAll('input,select').forEach(x=>{
-   x.addEventListener('input',()=>{
-      updateDependentFilters();
-      render();
-   });
- });
+ populateSelect(section,
+ [...new Set(applyFilters('section').map(x=>x.gender_section).filter(Boolean))].sort(),
+ 'كلا الشطرين', sv);
+
+ populateSelect(track,
+ [...new Set(applyFilters('track').map(x=>x.track).filter(Boolean))].sort(),
+ 'كل التخصصات', tv);
+
+ populateSelect(supervisor,
+ [...new Set(applyFilters('supervisor').map(x=>x.supervisor).filter(Boolean))].sort(),
+ 'كل المشرفين', pv);
 }
 
-function updateDependentFilters(){
- const filtered=currentFiltered();
+function onFilterChange(){
+ populateAllFilters();
+ render();
+}
 
- fillSelect('trackFilter',unique(filtered,'track'),'كل التخصصات');
- fillSelect('supervisorFilter',unique(filtered,'supervisor'),'كل المشرفين');
- fillSelect('reviewerFilter',unique(filtered,'reviewer'),'كل المحكمين');
+function currentResults(){
+ const q = search.value.toLowerCase();
+ return DATA.filter(r=>
+ (!reviewer.value || r.reviewer===reviewer.value) &&
+ (!section.value || r.gender_section===section.value) &&
+ (!track.value || r.track===track.value) &&
+ (!supervisor.value || r.supervisor===supervisor.value) &&
+ (!q || JSON.stringify(r).toLowerCase().includes(q))
+ );
 }
 
 function render(){
- const filtered=currentFiltered();
+ const rows=currentResults();
 
- projectsCount.textContent=filtered.length;
- tracksCount.textContent=new Set(filtered.map(x=>x.track)).size;
- supervisorsCount.textContent=new Set(filtered.map(x=>x.supervisor)).size;
- reviewersCount.textContent=new Set(filtered.map(x=>x.reviewer)).size;
+ projectsCount.textContent=rows.length;
+ tracksCount.textContent=new Set(rows.map(x=>x.track)).size;
+ supervisorsCount.textContent=new Set(rows.map(x=>x.supervisor)).size;
+ reviewersCount.textContent=new Set(rows.map(x=>x.reviewer)).size;
 
- cards.innerHTML=filtered.map(r=>`
-<div class="col-lg-4 col-md-6">
-<div class="card project-card">
-<div class="card-body">
-<div class="project-title">${r.project_title}</div>
-<hr>
-<p><b>رقم المشروع:</b> ${r.project_id}</p>
-<p><b>قائد المشروع:</b> ${r.group_leader}</p>
-<p><b>اسم المشرف:</b> ${r.supervisor}</p>
-<p><b>التخصص:</b> ${r.track}</p>
-<p><b>اسم المحكم:</b> ${r.reviewer}</p>
-<a target="_blank" class="btn btn-primary w-100" href="${r.poster_link}">عرض البوستر</a>
-</div></div></div>`).join('');
+ cards.innerHTML = rows.length ? rows.map(r=>`
+ <div class="col-lg-4 col-md-6">
+  <div class="cardx">
+   <div class="title">${escapeHtml(r.project_title)}</div><hr>
+   <div class="meta"><b>رقم المشروع:</b> ${escapeHtml(r.project_id)}</div>
+   <div class="meta"><b>قائد المشروع:</b> ${escapeHtml(r.group_leader)}</div>
+   <div class="meta"><b>اسم المشرف:</b> ${escapeHtml(r.supervisor)}</div>
+   <div class="meta"><b>التخصص:</b> ${escapeHtml(r.track)}</div>
+   <div class="meta"><b>اسم المحكم:</b> ${escapeHtml(r.reviewer)}</div>
+   <a class="btn btn-primary w-100 mt-2" target="_blank" href="${r.poster_link}">عرض البوستر</a>
+  </div>
+ </div>`).join('')
+ : '<div class="col-12"><div class="alert alert-warning">لا توجد نتائج مطابقة.</div></div>';
+}
+
+function escapeHtml(s){
+ return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
